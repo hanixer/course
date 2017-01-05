@@ -287,7 +287,7 @@ find f (x:.xs) = if f x then Full x else find f xs
 lengthGT4 ::
   List a
   -> Bool
-lengthGT4 xs = impl xs 0
+lengthGT4 xs' = impl xs' 0
   where impl _ 4 = True
         impl Nil _ = False
         impl (_:.xs) n = impl xs (n+1)
