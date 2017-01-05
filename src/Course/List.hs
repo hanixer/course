@@ -294,15 +294,15 @@ lengthGT4 xs = impl xs 0
 
 -- | Reverse a list.
 --
--- >>> reverse Nil
+
 -- []
 --
--- >>> take 1 (reverse (reverse largeList))
+
 -- [1]
 --
--- prop> let types = x :: List Int in reverse x ++ reverse y == reverse (y ++ x)
+
 --
--- prop> let types = x :: Int in reverse (x :. Nil) == x :. Nil
+
 reverse ::
   List a
   -> List a
