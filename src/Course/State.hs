@@ -214,7 +214,10 @@ distinct xs = eval (filtering p xs) S.empty
 isHappy ::
   Integer
   -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy n = case firstRepeat (produce sumOfSqDig n) of
+  (Full 1) -> True
+  (Full _) -> False
+  _ -> True
 
---sumOfSqDig n = 
+sumOfSqDig :: Integer -> Integer
+sumOfSqDig n = foldLeft (+) 0 $ map (toInteger . (P.^2) . digitToInt) (listh (show n))
