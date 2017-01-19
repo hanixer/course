@@ -68,8 +68,8 @@ infixr 1 =<<
   f (a -> b)
   -> f a
   -> f b
-fg <*> fa = (\a -> (\g -> g a) <$> fg) =<< fa
-  
+--fg <*> fa = (\a -> (\g -> g a) <$> fg) =<< fa
+fg <*> fa = (\g -> (\a -> g a) <$> fa) =<< fg  
 
 infixl 4 <*>
 
@@ -138,8 +138,8 @@ join ::
   Monad f =>
   f (f a)
   -> f a
-join =
-  error "todo: Course.Monad#join"
+join ffa = ffa >>= \fa -> fa >>= \f -> return f
+  
 
 -- | Implement a flipped version of @(=<<)@, however, use only
 -- @join@ and @(<$>)@.
@@ -167,8 +167,8 @@ infixl 1 >>=
   -> (a -> f b)
   -> a
   -> f c
-(<=<) =
-  error "todo: Course.Monad#(<=<)"
+btofc <=< atofb = \a ->
+  btofc =<< atofb a
 
 infixr 1 <=<
 

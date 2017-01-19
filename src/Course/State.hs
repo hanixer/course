@@ -40,8 +40,8 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  (<$>) =
-    error "todo: Course.State#(<$>)"
+  g <$> m = State $ \s -> let (a, s') = runState m s in
+                    (g a, s')
 
 -- | Implement the `Applicative` instance for `State s`.
 --
@@ -58,16 +58,18 @@ instance Applicative (State s) where
   pure ::
     a
     -> State s a
-  pure =
-    error "todo: Course.State pure#instance (State s)"
+  pure a = State $ \s -> (a, s)
   (<*>) ::
     State s (a -> b)
     -> State s a
     -> State s b 
-  (<*>) =
-    error "todo: Course.State (<*>)#instance (State s)"
+  mg <*> ma = State $ \s ->
+    let (g, s0) = runState mg s 
+        (a, s1) = runState ma s0 in
+      (g a, s1)
 
--- | Implement the `Bind` instance for `State s`.
+
+-- | implement the `Bind` instance for `State s`.
 --
 -- >>> runState ((const $ put 2) =<< put 1) 0
 -- ((),2)
@@ -79,8 +81,10 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  (=<<) =
-    error "todo: Course.State (=<<)#instance (State s)"
+  g =<< ma = State $ \s ->
+    let (a, s') = runState ma s in
+        runState (g a) s'
+    
 
 -- | Run the `State` seeded with `s` and retrieve the resulting state.
 --
@@ -89,8 +93,8 @@ exec ::
   State s a
   -> s
   -> s
-exec =
-  error "todo: Course.State#exec"
+exec ma s = 
+  snd $ runState ma s
 
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
 --
@@ -99,8 +103,8 @@ eval ::
   State s a
   -> s
   -> a
-eval =
-  error "todo: Course.State#eval"
+eval ma s =
+  fst $ runState ma s
 
 -- | A `State` where the state also distributes into the produced value.
 --
@@ -108,8 +112,8 @@ eval =
 -- (0,0)
 get ::
   State s s
-get =
-  error "todo: Course.State#get"
+get = State $ \s -> (s, s)
+  
 
 -- | A `State` where the resulting state is seeded with the given value.
 --
@@ -118,8 +122,7 @@ get =
 put ::
   s
   -> State s ()
-put =
-  error "todo: Course.State#put"
+put s = State $ \_ -> ((), s)
 
 -- | Find the first element in a `List` that satisfies a given predicate.
 -- It is possible that no element is found, hence an `Optional` result.
@@ -140,8 +143,12 @@ findM ::
   (a -> f Bool)
   -> List a
   -> f (Optional a)
-findM =
-  error "todo: Course.State#findM"
+findM _ Nil = pure Empty
+findM g (x:.xs) = (g x) >>= \b -> 
+  if b then return (Full x) 
+  else findM g xs
+  
+  
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
@@ -154,8 +161,14 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat =
-  error "todo: Course.State#firstRepeat"
+firstRepeat xs = eval (findM p xs) S.empty
+  where p x = do
+          s <- get
+          if S.member x s
+          then return True
+          else do
+            put $ S.insert x s
+            return False
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.

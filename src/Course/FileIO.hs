@@ -73,9 +73,14 @@ the contents of c
 -- /Tip:/ use @getArgs@ and @run@
 main ::
   IO ()
-main =
-  error "todo: Course.FileIO#main"
-
+main = do
+  args <- getArgs
+  case args of
+    Nil -> do 
+      putStrLn "no file given..."
+    (f:._) -> do
+      cs <- readFile f
+      run cs
 type FilePath =
   Chars
 
@@ -83,31 +88,37 @@ type FilePath =
 run ::
   Chars
   -> IO ()
-run =
-  error "todo: Course.FileIO#run"
+run cs = 
+  getFiles (lines cs) >>= printFiles
+
+coolba :: (a -> IO b) -> List a -> IO (List b)
+coolba _ Nil = pure Nil
+coolba f (x:.xs) = (f x) >>= (\y -> (coolba f xs >>= \ys -> pure (y:.ys)))
 
 getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
-getFiles =
-  error "todo: Course.FileIO#getFiles"
+getFiles = coolba getFile
 
 getFile ::
   FilePath
   -> IO (FilePath, Chars)
-getFile =
-  error "todo: Course.FileIO#getFile"
+getFile p = do
+  cs <- readFile p
+  return (p, cs)
 
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles =
-  error "todo: Course.FileIO#printFiles"
+printFiles files = do
+  (coolba (uncurry printFile)) files 
+  return ()
 
 printFile ::
   FilePath
   -> Chars
   -> IO ()
-printFile =
-  error "todo: Course.FileIO#printFile"
+printFile path cs = do
+  putStrLn path 
+  putStrLn cs
 
