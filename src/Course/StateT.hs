@@ -319,8 +319,18 @@ distinctG ::
   (Integral a, Show a) =>
   List a
   -> Logger Chars (Optional (List a))
-distinctG =
-  error "todo: Course.StateT#distinctG"
+distinctG xs = runOptionalT $ evalT (filtering pre xs) S.empty
 
-p :: (Integral a, Show a) => a -> StateT (OptionalT (Logger Chars (S.Set a))) a
-p = undefined
+pre :: (Integral a, Show a) => a -> StateT (S.Set a) (OptionalT (Logger Chars)) Bool
+pre x 
+  | x > 100 = StateT $ \_ -> OptionalT $ log1 ((listh "aborting > 100: ") ++ (listh $ show x)) Empty
+  | otherwise = do
+      s <- getT
+      let f b s' = if even x then log1 ((listh "even number: ") ++ (listh $ show x)) (Full (b, s')) else return (Full (b, s'))
+      if S.member x s
+        then StateT $ \_ -> OptionalT $ f False s
+        else do
+          putT $ S.insert x   s
+          s'' <- getT 
+          StateT $ \_ -> OptionalT $ f True s''
+
